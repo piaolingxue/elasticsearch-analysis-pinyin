@@ -16,6 +16,7 @@ import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombi
 import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
+
 /**
  * Created by IntelliJ IDEA. User: Medcl' Date: 12-5-21 Time: 下午5:53
  */
@@ -30,10 +31,12 @@ public class PinyinTokenizer extends Tokenizer {
     private HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
     private String mode;
 
+
     public PinyinTokenizer(Reader reader, String mode) {
         this(reader, DEFAULT_BUFFER_SIZE);
         this.mode = mode;
     }
+
 
     public PinyinTokenizer(Reader input, int bufferSize) {
         super(input);
@@ -43,6 +46,7 @@ public class PinyinTokenizer extends Tokenizer {
         format.setVCharType(HanyuPinyinVCharType.WITH_V);
     }
 
+
     @Override
     public final boolean incrementToken() throws IOException {
         if (tokenIter == null || !tokenIter.hasNext()) {
@@ -50,11 +54,14 @@ public class PinyinTokenizer extends Tokenizer {
             char[] buffer = termAtt.buffer();
             while (true) {
                 final int length = input.read(buffer, upto, buffer.length - upto);
-                if (length == -1) break;
+                if (length == -1)
+                    break;
                 upto += length;
-                if (upto == buffer.length) buffer = termAtt.resizeBuffer(1 + buffer.length);
+                if (upto == buffer.length)
+                    buffer = termAtt.resizeBuffer(1 + buffer.length);
             }
-            if (upto == 0) return false;
+            if (upto == 0)
+                return false;
             termAtt.setLength(upto);
             String str = termAtt.toString();
             termAtt.setEmpty();
@@ -70,14 +77,17 @@ public class PinyinTokenizer extends Tokenizer {
                         List<String> firstLetters = new ArrayList<String>();
                         for (String py : tmpFull[i]) {
                             String firstLetter = py.substring(0, 1);
-                            if (!firstLetters.contains(firstLetter)) firstLetters.add(firstLetter);
+                            if (!firstLetters.contains(firstLetter))
+                                firstLetters.add(firstLetter);
                         }
                         tmpFirst[i] = firstLetters.toArray(new String[firstLetters.size()]);
-                    } else {
-                        tmpFull[i] = new String[] {String.valueOf(c)};
-                        tmpFirst[i] = new String[] {String.valueOf(c)};
                     }
-                } catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
+                    else {
+                        tmpFull[i] = new String[] { String.valueOf(c) };
+                        tmpFirst[i] = new String[] { String.valueOf(c) };
+                    }
+                }
+                catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
                     badHanyuPinyinOutputFormatCombination.printStackTrace();
                 }
             }
@@ -86,20 +96,24 @@ public class PinyinTokenizer extends Tokenizer {
             if (mode.equals("all")) {
                 array = new ArrayList<String>();
                 array.add(str);
-                array.addAll(PinyinUtil.exchange(tmpFirst));
-                array.addAll(PinyinUtil.exchange(tmpFull));
-            } else if (mode.equals("full_only")) {
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFirst));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFull));
+            }
+            else if (mode.equals("full_only")) {
                 array = PinyinUtil.exchange(tmpFull);
-            } else if (mode.equals("first_only")) {
+            }
+            else if (mode.equals("first_only")) {
                 array = PinyinUtil.exchange(tmpFirst);
-            } else {
+            }
+            else {
                 array = new ArrayList<String>();
-                array.addAll(PinyinUtil.exchange(tmpFirst));
-                array.addAll(PinyinUtil.exchange(tmpFull));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFirst));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFull));
             }
             tokenIter = array.iterator();
 
-            if (!tokenIter.hasNext()) return false;
+            if (!tokenIter.hasNext())
+                return false;
         }
 
         clearAttributes();
@@ -109,10 +123,10 @@ public class PinyinTokenizer extends Tokenizer {
         return true;
     }
 
+
     public void reset() throws IOException {
         super.reset();
         this.tokenIter = null;
     }
-
 
 }
