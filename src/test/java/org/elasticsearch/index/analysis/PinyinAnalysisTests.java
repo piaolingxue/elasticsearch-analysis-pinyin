@@ -110,9 +110,8 @@ public class PinyinAnalysisTests extends TestCase {
     @Test
     public void testTokenizer() throws IOException {
         String[] s = { "刘德华", "劉德華", "刘德华A1", "刘德华A2", "音乐 abcd", "音乐", "hello world" };
-        s = new String[] { "hello,world" };
         for (String value : s) {
-            System.out.println(value);
+            System.out.println(String.format("原始文本:%s", value));
             StringReader sr = new StringReader(value);
 
             PinyinTokenizer tokenizer = new PinyinTokenizer(sr, "all");

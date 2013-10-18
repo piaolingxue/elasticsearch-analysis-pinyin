@@ -31,6 +31,7 @@ import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
+
 /**
  */
 public class PinyinTokenFilter extends TokenFilter {
@@ -40,6 +41,7 @@ public class PinyinTokenFilter extends TokenFilter {
     private String mode;
     private List<String> array = null;
     private Iterator<String> tokenIter = null;
+
 
     @Override
     public final boolean incrementToken() throws IOException {
@@ -61,14 +63,17 @@ public class PinyinTokenFilter extends TokenFilter {
                         List<String> firstLetters = new ArrayList<String>();
                         for (String py : tmpFull[i]) {
                             String firstLetter = py.substring(0, 1);
-                            if (!firstLetters.contains(firstLetter)) firstLetters.add(firstLetter);
+                            if (!firstLetters.contains(firstLetter))
+                                firstLetters.add(firstLetter);
                         }
                         tmpFirst[i] = firstLetters.toArray(new String[firstLetters.size()]);
-                    } else {
-                        tmpFull[i] = new String[] {String.valueOf(c)};
-                        tmpFirst[i] = new String[] {String.valueOf(c)};
                     }
-                } catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
+                    else {
+                        tmpFull[i] = new String[] { String.valueOf(c) };
+                        tmpFirst[i] = new String[] { String.valueOf(c) };
+                    }
+                }
+                catch (BadHanyuPinyinOutputFormatCombination badHanyuPinyinOutputFormatCombination) {
                     badHanyuPinyinOutputFormatCombination.printStackTrace();
                 }
             }
@@ -77,20 +82,24 @@ public class PinyinTokenFilter extends TokenFilter {
             if (mode.equals("all")) {
                 array = new ArrayList<String>();
                 array.add(termAtt.toString());
-                array.addAll(PinyinUtil.exchange(tmpFirst));
-                array.addAll(PinyinUtil.exchange(tmpFull));
-            } else if (mode.equals("full_only")) {
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFirst));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFull));
+            }
+            else if (mode.equals("full_only")) {
                 array = PinyinUtil.exchange(tmpFull);
-            } else if (mode.equals("first_only")) {
+            }
+            else if (mode.equals("first_only")) {
                 array = PinyinUtil.exchange(tmpFirst);
-            } else {
+            }
+            else {
                 array = new ArrayList<String>();
-                array.addAll(PinyinUtil.exchange(tmpFirst));
-                array.addAll(PinyinUtil.exchange(tmpFull));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFirst));
+                PinyinUtil.addAndRemoveDuplicates(array, PinyinUtil.exchange(tmpFull));
             }
             tokenIter = array.iterator();
 
-            if (!tokenIter.hasNext()) return false;
+            if (!tokenIter.hasNext())
+                return false;
         }
 
         clearAttributes();
@@ -100,6 +109,7 @@ public class PinyinTokenFilter extends TokenFilter {
         return true;
     }
 
+
     public PinyinTokenFilter(TokenStream in, String mode) {
         super(in);
         this.mode = mode;
@@ -107,6 +117,7 @@ public class PinyinTokenFilter extends TokenFilter {
         format.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
         format.setVCharType(HanyuPinyinVCharType.WITH_V);
     }
+
 
     @Override
     public void reset() throws IOException {

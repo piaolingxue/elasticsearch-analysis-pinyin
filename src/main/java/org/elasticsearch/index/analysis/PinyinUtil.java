@@ -8,11 +8,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+
 /**
  * @author matrix
  * 
  */
 public class PinyinUtil {
+
+    public static void addAndRemoveDuplicates(List<String> source, List<String> newData) {
+        for (String data : newData) {
+            if (!source.contains(data))
+                source.add(data);
+        }
+    }
+
 
     public static String[] removeDuplicates(String[] list) {
         Set<String> items = new HashSet<String>();
@@ -24,6 +33,7 @@ public class PinyinUtil {
         return items.toArray(new String[items.size()]);
     }
 
+
     /**
      * 递归得到所有拼音组合
      * 
@@ -34,6 +44,7 @@ public class PinyinUtil {
         String[][] temp = doExchange(strJaggedArray);
         return Arrays.asList(temp[0]);
     }
+
 
     /**
      * 递归
@@ -62,7 +73,8 @@ public class PinyinUtil {
             }
             newArray[0] = temp;
             return doExchange(newArray);
-        } else {
+        }
+        else {
             return strJaggedArray;
         }
     }
