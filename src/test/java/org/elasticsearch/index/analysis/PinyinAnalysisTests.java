@@ -43,6 +43,7 @@ import org.elasticsearch.indices.analysis.IndicesAnalysisService;
 import org.hamcrest.MatcherAssert;
 import org.testng.annotations.Test;
 
+
 /**
  */
 public class PinyinAnalysisTests extends TestCase {
@@ -53,18 +54,17 @@ public class PinyinAnalysisTests extends TestCase {
 
         Injector parentInjector =
                 new ModulesBuilder().add(new SettingsModule(EMPTY_SETTINGS),
-                        new EnvironmentModule(new Environment(EMPTY_SETTINGS))).createInjector();
+                    new EnvironmentModule(new Environment(EMPTY_SETTINGS))).createInjector();
         Injector injector =
                 new ModulesBuilder().add(
-                        new IndexSettingsModule(index, EMPTY_SETTINGS),
-                        new IndexNameModule(index),
-                        new AnalysisModule(EMPTY_SETTINGS, parentInjector
-                                .getInstance(IndicesAnalysisService.class))
-                                .addProcessor(new PinyinAnalysisBinderProcessor()))
-                        .createChildInjector(parentInjector);
+                    new IndexSettingsModule(index, EMPTY_SETTINGS),
+                    new IndexNameModule(index),
+                    new AnalysisModule(EMPTY_SETTINGS, parentInjector
+                        .getInstance(IndicesAnalysisService.class))
+                        .addProcessor(new PinyinAnalysisBinderProcessor())).createChildInjector(
+                    parentInjector);
 
         AnalysisService analysisService = injector.getInstance(AnalysisService.class);
-
 
         TokenizerFactory tokenizerFactory = analysisService.tokenizer("pinyin");
         MatcherAssert.assertThat(tokenizerFactory, instanceOf(PinyinTokenizerFactory.class));
@@ -72,15 +72,14 @@ public class PinyinAnalysisTests extends TestCase {
         TokenFilterFactory tokenFilterFactory = analysisService.tokenFilter("pinyin");
         MatcherAssert.assertThat(tokenFilterFactory, instanceOf(PinyinTokenFilterFactory.class));
 
-
     }
+
 
     @Test
     public void testTokenFilter() throws IOException {
         StringReader sr = new StringReader("刘德华");
         Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_41);
-        PinyinTokenFilter filter =
-                new PinyinTokenFilter(analyzer.tokenStream("f", sr), "full_only");
+        PinyinTokenFilter filter = new PinyinTokenFilter(analyzer.tokenStream("f", sr), "full_only");
         List<String> pinyin = new ArrayList<String>();
         filter.reset();
         while (filter.incrementToken()) {
@@ -107,9 +106,11 @@ public class PinyinAnalysisTests extends TestCase {
         Assert.assertEquals("ldh", pinyin.get(0));
     }
 
+
     @Test
     public void testTokenizer() throws IOException {
-        String[] s = {"刘德华", "劉德華", "刘德华A1", "刘德华A2", "音乐abcd", "音乐"};
+        String[] s = { "刘德华", "劉德華", "刘德华A1", "刘德华A2", "音乐 abcd", "音乐", "hello world" };
+        s = new String[] { "hello,world" };
         for (String value : s) {
             System.out.println(value);
             StringReader sr = new StringReader(value);
@@ -118,7 +119,8 @@ public class PinyinAnalysisTests extends TestCase {
             // PinyinTokenizer tokenizer = new PinyinTokenizer(sr, " ", "only");
             // PinyinTokenizer tokenizer = new PinyinTokenizer(sr," ","prefix");
             // PinyinTokenizer tokenizer = new PinyinTokenizer(sr," ","append");
-            // PinyinAbbreviationsTokenizer tokenizer = new PinyinAbbreviationsTokenizer(sr);
+            // PinyinAbbreviationsTokenizer tokenizer = new
+            // PinyinAbbreviationsTokenizer(sr);
 
             boolean hasnext = tokenizer.incrementToken();
 
