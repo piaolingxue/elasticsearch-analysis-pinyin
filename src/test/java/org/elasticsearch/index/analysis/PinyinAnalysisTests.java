@@ -18,6 +18,8 @@ package org.elasticsearch.index.analysis;
 import static org.elasticsearch.common.settings.ImmutableSettings.Builder.EMPTY_SETTINGS;
 import static org.hamcrest.Matchers.instanceOf;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -42,6 +44,9 @@ import org.elasticsearch.index.settings.IndexSettingsModule;
 import org.elasticsearch.indices.analysis.IndicesAnalysisService;
 import org.hamcrest.MatcherAssert;
 import org.testng.annotations.Test;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 
 
 /**
@@ -109,7 +114,9 @@ public class PinyinAnalysisTests extends TestCase {
 
     @Test
     public void testTokenizer() throws IOException {
-        String[] s = { "刘德华", "劉德華", "刘德华A1", "刘德华A2", "音乐 abcd", "音乐", "hello world" };
+        String[] s =
+                { "侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗侗", "咳咳咳咳咳咳咳咳咳咳咳咳咳咳咳", "ゃ做个淡然的钕子°", "[┾﹎三分淑女范ㄣω↘]",
+                 "↗™蓤稥*喵﹏婭:汐ぐ", "刘德华", "劉德華", "刘德华A1", "刘德华A2", "音乐 abcd", "音乐", "hello world", "女人" };
         for (String value : s) {
             System.out.println(String.format("原始文本:%s", value));
             StringReader sr = new StringReader(value);
@@ -134,5 +141,37 @@ public class PinyinAnalysisTests extends TestCase {
             }
         }
 
+    }
+
+
+    @Test
+    public void testTokenizerFromFile() throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader("/home/matrix/Downloads/followers1.json"));
+        while (br.ready()) {
+            String line = br.readLine();
+            JSONObject obj = (JSONObject) JSON.parse(line);
+            String username = obj.getString("username");
+            System.out.println(String.format("原始文本:%s", username));
+            StringReader sr = new StringReader(username);
+
+            PinyinTokenizer tokenizer = new PinyinTokenizer(sr, "all");
+            // PinyinTokenizer tokenizer = new PinyinTokenizer(sr, " ", "only");
+            // PinyinTokenizer tokenizer = new PinyinTokenizer(sr," ","prefix");
+            // PinyinTokenizer tokenizer = new PinyinTokenizer(sr," ","append");
+            // PinyinAbbreviationsTokenizer tokenizer = new
+            // PinyinAbbreviationsTokenizer(sr);
+
+            boolean hasnext = tokenizer.incrementToken();
+
+            while (hasnext) {
+
+                CharTermAttribute ta = tokenizer.getAttribute(CharTermAttribute.class);
+
+                System.out.println(ta.toString());
+
+                hasnext = tokenizer.incrementToken();
+
+            }
+        }
     }
 }

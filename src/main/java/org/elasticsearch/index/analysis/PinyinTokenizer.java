@@ -30,6 +30,8 @@ public class PinyinTokenizer extends Tokenizer {
     private final CharTermAttribute termAtt = addAttribute(CharTermAttribute.class);
     private HanyuPinyinOutputFormat format = new HanyuPinyinOutputFormat();
     private String mode;
+    private final static Integer MAX_WORD_LEN = 10;
+    private boolean simpleMode = false;
 
 
     public PinyinTokenizer(Reader reader, String mode) {
@@ -63,6 +65,8 @@ public class PinyinTokenizer extends Tokenizer {
             if (upto == 0)
                 return false;
             termAtt.setLength(upto);
+            if (upto > MAX_WORD_LEN)
+                simpleMode = true;
             String str = termAtt.toString();
             termAtt.setEmpty();
             String[][] tmpFull = new String[upto][];
@@ -71,9 +75,15 @@ public class PinyinTokenizer extends Tokenizer {
                 char c = str.charAt(i);
                 // 是中文或者a-z或者A-Z转换拼音(我的需求，是保留中文或者a-z或者A-Z)
                 try {
-                    tmpFull[i] = PinyinHelper.toHanyuPinyinStringArray(c, format);
+                    tmpFull[i] = PinyinUtil.toPinyinStringArray(c);
+                    if (tmpFull[i] == null)
+                        tmpFull[i] = PinyinHelper.toHanyuPinyinStringArray(c, format);
                     if (tmpFull[i] != null) {
-                        tmpFull[i] = PinyinUtil.removeDuplicates(tmpFull[i]);
+                        if (simpleMode) {
+                            tmpFull[i] = new String[] { tmpFull[i][0] };
+                        }
+                        else
+                            tmpFull[i] = PinyinUtil.removeDuplicates(tmpFull[i]);
                         List<String> firstLetters = new ArrayList<String>();
                         for (String py : tmpFull[i]) {
                             String firstLetter = py.substring(0, 1);
@@ -127,6 +137,7 @@ public class PinyinTokenizer extends Tokenizer {
     public void reset() throws IOException {
         super.reset();
         this.tokenIter = null;
+        simpleMode = false;
     }
 
 }
